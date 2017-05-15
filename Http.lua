@@ -1,5 +1,7 @@
 local JSON = require('json')
 require('File')
+require('Plist')
+require('Scene')
 
 Http = {}
 
@@ -7,16 +9,18 @@ function Http:create(key)
 
     local http = {}
     http.key = key
+    http.httpID = 0
     local host = Properties["HTTP Address"]
     local port = tonumber(Properties["HTTP Port"])
     local masterID = Properties["masterID"]
-    local fileName = "keypad_258_1.plist"--string.format("keypad_%s_%d.plist",masterID,C4:RoomGetId())
+    http.fileName = "keypad_258_1.plist"
     
-    function http:prepareDownload()
+    function http:prepareDownload(fileName)
+	   self.fileName = fileName
 	   local url = string.format("http://%s:%d/Cloud/download_plist.aspx",host,port)
 	   
-	   local md5 = File.md5(fileName)
-	   local param = string.format("filename=%s&md5=%s",fileName,md5)
+	   local md5 = File.md5(path)
+	   local param = string.format("filename=%s&md5=%s",self.fileName,md5)
     
 	   local ticketId = C4:urlPost(url, param)
 	   return ticketId
@@ -30,13 +34,16 @@ function Http:create(key)
     function http:ReceivedAsync(ticketId, strData, responseCode, tHeaders)
 	   print('http:ReceivedAsync, ticketId = ' .. tostring(ticketId) .. ' responseCode = ' .. tostring(responseCode))
 	   if (responseCode == 200) then
-		  print(strData)
 		  local url = self:paserURL(strData)
 		  if url == "" then
-			 local sceneid = parseToScene(fileName,self.key)
-			 execute(sceneid)
+			 if ticketID == self.httpID then
+				self:startScene()
+			 else
+				local sceneID = Plist.parseToSceneID(self.fileName,self.key)
+				self:execute(sceneID)
+			 end
 		  else
-			 self:download(url)
+			 return self:download(url,ticketID)
 		  end
 	   else
 		  Dbg:Alert("ReceivedAsync: can not find command object!!")
@@ -44,19 +51,35 @@ function Http:create(key)
 
     end
     
-    function http:download(url)
+    function http:download(url,ticketID)
+	   
 	   C4:urlGet(url, {}, false,
 		  function(ticketId, strData, responseCode, tHeaders, strError)
 			 if (strError == nil) then
 				print("C4:urlGet() succeeded: " .. strData)
 				File.write(fileName,strData)
-				local sceneid = parseToScene(fileName,self.key)
-				execute(sceneid)
+				if self.httpID == ticketID then
+				    self:startScene()
+				else
+				    local sceneID = Plist.parseToSceneID(self.fileName,self.key)
+				    self:execute(sceneID)
+				end
 			 else
 				print("C4:urlGet() failed: " .. strError)
+				
 			 end
 	   end)
 
+    end
+    
+    function http:execute(sceneID)
+	   local path = string.format("keypad_%s_%d.plist",masterID,sceneID)
+	   self.httpID = self:prepareDownload(path)
+    end
+    
+    function http:startScene()
+	   local sceneData = Plist.parseToTable(self.fileName)
+	   Scene.start(sceneData)
     end
     
     return http

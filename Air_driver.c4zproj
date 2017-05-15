@@ -2,8 +2,10 @@
  <Items>
   <Item type="file" name="driver.lua" />
   <Item type="file" name="driver.xml" />
-  <Item type="file" name="Http.lua" />
   <Item type="file" name="File.lua" />
+  <Item type="file" name="Http.lua" />
+  <Item type="file" name="Plist.lua" />
+  <Item type="file" name="Scene.lua" />
   <Item type="subfolder" c4zDir="icons" name="icons" />
   <Item type="subfolder" c4zDir="www" name="www" />
  </Items>

@@ -29,7 +29,8 @@ EX_CMD["custom key"] = function(tParams)
     local key = tParams["key_value"]
 
     local http = Http:create(key)
-    local ticketId = http:prepareDownload()
+    local path = string.format("keypad_%s_%d.plist",masterID,C4:RoomGetId())
+    local ticketId = http:prepareDownload(path)
     table.insert(gTicketIdMap, ticketId, http)
 end
 
