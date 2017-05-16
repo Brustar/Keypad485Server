@@ -1,4 +1,4 @@
-local Plist = {}
+Plist = {}
 
 function Plist.nextTag(s, i)
     return string.find(s, "<(%/?)([%w:]+)(%/?)>", i)
@@ -80,7 +80,7 @@ function Plist.dictionary(s, i)
                         local val = string.sub(s, i, ni-1)
                         if label == "integer" or label == "real" then
                             dict[key] = tonumber(val)
-                        else 
+                        else
                             dict[key] = val
                         end
                     end
@@ -122,7 +122,7 @@ function Plist.deepPrint(t, prefix)
     for k,v in pairs(t) do
         if type(v) == "table" then
             print(prefix.."["..tostring(k).."] -> table")
-            deepPrint(v, prefix .. "   ")
+            Plist.deepPrint(v, prefix .. "   ")
         else
             print(prefix.."["..tostring(k).."]: "..tostring(v))
         end
@@ -130,19 +130,19 @@ function Plist.deepPrint(t, prefix)
 end
 
 function Plist.parseToTable(fileName)
-    local data = File.read(fileName)
     
-    return Plist.plistParse(s)
+    local data = File.read(fileName)
+    return Plist.plistParse(data)
 end
 
 function Plist.parseToSceneID(fileName,key)
     local plist = Plist.parseToTable(fileName)
-    
     for i,v in ipairs(plist.keys) do
-	   if v.keyID == key then
+	   if v.keyID == tonumber(key) then
+		  print("v.sceneID" .. v.sceneID)
 		  return v.sceneID
 	   end
     end
     
-    return false
+    return 0
 end

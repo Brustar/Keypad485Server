@@ -13,13 +13,12 @@ function Http:create(key)
     local host = Properties["HTTP Address"]
     local port = tonumber(Properties["HTTP Port"])
     local masterID = Properties["masterID"]
-    http.fileName = "keypad_258_1.plist"
     
     function http:prepareDownload(fileName)
 	   self.fileName = fileName
 	   local url = string.format("http://%s:%d/Cloud/download_plist.aspx",host,port)
 	   
-	   local md5 = File.md5(path)
+	   local md5 = File.md5(fileName)
 	   local param = string.format("filename=%s&md5=%s",self.fileName,md5)
     
 	   local ticketId = C4:urlPost(url, param)
@@ -36,14 +35,14 @@ function Http:create(key)
 	   if (responseCode == 200) then
 		  local url = self:paserURL(strData)
 		  if url == "" then
-			 if ticketID == self.httpID then
+			 if ticketId == self.httpID then
 				self:startScene()
 			 else
 				local sceneID = Plist.parseToSceneID(self.fileName,self.key)
 				self:execute(sceneID)
 			 end
 		  else
-			 return self:download(url,ticketID)
+			 return self:download(url,ticketId)
 		  end
 	   else
 		  Dbg:Alert("ReceivedAsync: can not find command object!!")
@@ -57,7 +56,8 @@ function Http:create(key)
 		  function(ticketId, strData, responseCode, tHeaders, strError)
 			 if (strError == nil) then
 				print("C4:urlGet() succeeded: " .. strData)
-				File.write(fileName,strData)
+				C4:FileDelete(self.fileName)
+				File.write(self.fileName,strData)
 				if self.httpID == ticketID then
 				    self:startScene()
 				else
@@ -73,8 +73,10 @@ function Http:create(key)
     end
     
     function http:execute(sceneID)
-	   local path = string.format("keypad_%s_%d.plist",masterID,sceneID)
+	   local path = string.format("%s_%d.plist",masterID,sceneID)
 	   self.httpID = self:prepareDownload(path)
+	   
+	   table.insert(gTicketIdMap, self.httpID, self)
     end
     
     function http:startScene()

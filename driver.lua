@@ -29,7 +29,7 @@ EX_CMD["custom key"] = function(tParams)
     local key = tParams["key_value"]
 
     local http = Http:create(key)
-    local path = string.format("keypad_%s_%d.plist",masterID,C4:RoomGetId())
+    local path = string.format("keypad_%s_%d.plist",Properties["masterID"],C4:RoomGetId())
     local ticketId = http:prepareDownload(path)
     table.insert(gTicketIdMap, ticketId, http)
 end
@@ -48,7 +48,7 @@ function ExecuteCommand(sCommand, tParams)
 	elseif (EX_CMD[sCommand] ~= nil) then
 		QueueCommand(EX_CMD[sCommand])
 	else
-		Dbg:Alert("ExecuteCommand: Unhandled command = " .. sCommand)
+		print("ExecuteCommand: Unhandled command = " .. sCommand)
 	end
 end
 
@@ -125,7 +125,7 @@ function ReceivedAsync(ticketId, strData, responseCode, tHeaders)
         this:ReceivedAsync(ticketId, strData, responseCode, tHeaders)
         gTicketIdMap[ticketId] = nil
     else
-        Dbg:Alert("ReceivedAsync: can not find command object!!")
+        print("ReceivedAsync: can not find command object!!")
     end
 end
 
